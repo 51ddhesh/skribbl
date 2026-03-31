@@ -1,0 +1,173 @@
+<!-- public/game.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skribbl Clone - Game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="game-body">
+  <!-- Header -->
+  <div class="game-header">
+    <div class="header-left">
+      <div class="room-badge" id="roomCode">------</div>
+      <div class="round-info">Round <span id="roundCurrent">0</span> / <span id="roundTotal">0</span></div>
+    </div>
+    <div class="word-display" id="wordHint"></div>
+    <div class="timer-display" id="timer">--</div>
+  </div>
+
+  <!-- Game Area -->
+  <div class="game-area">
+    <!-- Players -->
+    <div class="panel players-panel-container">
+      <div class="panel-header">👥 Players</div>
+      <div class="panel-body" id="playersList"></div>
+    </div>
+
+    <!-- Canvas -->
+    <div class="canvas-area" id="canvasArea">
+      <canvas id="drawingCanvas"></canvas>
+      <div class="toolbar" id="toolbar">
+        <!-- Colors -->
+        <div class="color-swatch active" style="background:#000000" data-color="#000000"></div>
+        <div class="color-swatch" style="background:#808080" data-color="#808080"></div>
+        <div class="color-swatch" style="background:#FF0000" data-color="#FF0000"></div>
+        <div class="color-swatch" style="background:#FF6B00" data-color="#FF6B00"></div>
+        <div class="color-swatch" style="background:#FFD700" data-color="#FFD700"></div>
+        <div class="color-swatch" style="background:#00CC00" data-color="#00CC00"></div>
+        <div class="color-swatch" style="background:#0066FF" data-color="#0066FF"></div>
+        <div class="color-swatch" style="background:#9900FF" data-color="#9900FF"></div>
+        <div class="color-swatch" style="background:#FF69B4" data-color="#FF69B4"></div>
+        <div class="color-swatch" style="background:#8B4513" data-color="#8B4513"></div>
+        <div class="color-swatch" style="background:#FFFFFF; border: 1px solid #ccc;" data-color="#FFFFFF"></div>
+
+        <div class="tool-divider"></div>
+
+        <!-- Brush sizes -->
+        <button class="tool-btn" data-size="3">
+          <span class="brush-preview"><span class="brush-dot" style="width:6px;height:6px;"></span></span>
+        </button>
+        <button class="tool-btn active" data-size="8">
+          <span class="brush-preview"><span class="brush-dot" style="width:10px;height:10px;"></span></span>
+        </button>
+        <button class="tool-btn" data-size="16">
+          <span class="brush-preview"><span class="brush-dot" style="width:16px;height:16px;"></span></span>
+        </button>
+        <button class="tool-btn" data-size="28">
+          <span class="brush-preview"><span class="brush-dot" style="width:22px;height:22px;"></span></span>
+        </button>
+
+        <div class="tool-divider"></div>
+
+        <button class="tool-btn" id="eraserBtn">🧹 Eraser</button>
+        <button class="tool-btn" id="fillBtn">🪣 Fill</button>
+        <button class="tool-btn clear-btn" id="clearBtn">🗑️ Clear</button>
+      </div>
+    </div>
+
+    <!-- Chat -->
+    <div class="panel chat-panel-container">
+      <div class="panel-header">💬 Chat</div>
+      <div class="panel-body chat-messages" id="chatMessages"></div>
+      <div class="chat-input-area">
+        <input type="text" id="chatInput" placeholder="Type your guess..." maxlength="80" autocomplete="off" />
+        <button onclick="sendGuess()">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lobby Overlay -->
+  <div class="overlay" id="lobbyOverlay">
+    <div class="overlay-card">
+      <h2>🎨 Game Lobby</h2>
+      <p class="subtitle">Share the room code with friends!</p>
+      <div class="room-badge" style="font-size:2rem; padding:12px 24px; display:inline-block; margin-bottom:16px;" id="lobbyRoomCode">------</div>
+      <p class="subtitle" id="lobbyPlayerCount">Waiting for players...</p>
+
+      <div class="lobby-settings" id="lobbySettings">
+        <div class="setting-row">
+          <label>Draw Time</label>
+          <select id="settingDrawTime">
+            <option value="30">30s</option>
+            <option value="45">45s</option>
+            <option value="60" selected>60s</option>
+            <option value="80">80s</option>
+            <option value="100">100s</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <label>Rounds</label>
+          <select id="settingRounds">
+            <option value="2">2</option>
+            <option value="3" selected>3</option>
+            <option value="5">5</option>
+            <option value="7">7</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <label>Hints</label>
+          <select id="settingHints">
+            <option value="true" selected>Enabled</option>
+            <option value="false">Disabled</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="lobbyPlayersList" style="margin-bottom: 20px;"></div>
+
+      <button class="btn btn-primary btn-lg" id="startGameBtn" style="display:none;" onclick="startGame()">
+        🚀 Start Game
+      </button>
+      <p class="subtitle" id="waitingMsg" style="display:none;">Waiting for host to start...</p>
+    </div>
+  </div>
+
+  <!-- Word Choice Overlay -->
+  <div class="overlay" id="wordChoiceOverlay">
+    <div class="overlay-card">
+      <h2>🖌️ Choose a Word!</h2>
+      <p class="subtitle">Pick a word to draw</p>
+      <div class="word-choices" id="wordChoices"></div>
+      <p class="subtitle" style="margin-top:16px; font-size:0.85rem;" id="wordTimer">Auto-picking in 15s...</p>
+    </div>
+  </div>
+
+  <!-- Turn End Overlay -->
+  <div class="overlay" id="turnEndOverlay">
+    <div class="overlay-card">
+      <h2 id="turnEndTitle">⏰ Time's Up!</h2>
+      <p class="revealed-word">The word was: <span id="turnEndWord"></span></p>
+      <div class="scoreboard" id="turnEndScores"></div>
+    </div>
+  </div>
+
+  <!-- Round End Overlay -->
+  <div class="overlay" id="roundEndOverlay">
+    <div class="overlay-card">
+      <h2 id="roundEndTitle">📊 Round Complete!</h2>
+      <p class="subtitle" id="roundEndSubtitle"></p>
+      <div class="scoreboard" id="roundEndScores"></div>
+    </div>
+  </div>
+
+  <!-- Game Over Overlay -->
+  <div class="overlay" id="gameOverOverlay">
+    <div class="overlay-card">
+      <h2>🏆 Game Over!</h2>
+      <p class="subtitle" id="winnerText"></p>
+      <div class="scoreboard" id="gameOverScores"></div>
+      <button class="btn btn-primary play-again-btn" onclick="playAgain()">🔄 Play Again</button>
+      <button class="btn btn-secondary play-again-btn" onclick="window.location.href='/'">🏠 Home</button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/canvas.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/socket.js"></script>
+</body>
+</html>

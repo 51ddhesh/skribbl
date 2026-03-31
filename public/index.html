@@ -1,0 +1,138 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skribbl Clone</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="landing-body">
+  <div class="landing-container">
+    <div class="logo">
+      <span class="logo-icon">🎨</span>
+      <h1>Skr<span class="color-i">i</span>bbl</h1>
+      <p class="tagline">Draw. Guess. Win.</p>
+    </div>
+
+    <div class="card main-card">
+      <div class="avatar-select">
+        <p>Choose Avatar</p>
+        <div class="avatar-grid" id="avatarGrid"></div>
+      </div>
+
+      <div class="input-group">
+        <label for="playerName">Your Name</label>
+        <input type="text" id="playerName" placeholder="Enter your name" maxlength="16" autocomplete="off" />
+      </div>
+
+      <button class="btn btn-primary btn-lg" id="createBtn" onclick="createRoom()">
+        <span class="btn-icon">🏠</span> Create Room
+      </button>
+
+      <div class="divider"><span>or join a friend</span></div>
+
+      <div class="join-row">
+        <input type="text" id="roomCode" placeholder="Room code" maxlength="6"
+               style="text-transform: uppercase;" autocomplete="off" />
+        <button class="btn btn-secondary" id="joinBtn" onclick="joinRoom()">
+          <span class="btn-icon">🚪</span> Join
+        </button>
+      </div>
+
+      <div id="status" class="status-msg"></div>
+    </div>
+
+    <div class="card info-card">
+      <h3>How to Play</h3>
+      <div class="steps">
+        <div class="step"><span class="step-num">1</span> Create a room & share the code</div>
+        <div class="step"><span class="step-num">2</span> Take turns drawing a secret word</div>
+        <div class="step"><span class="step-num">3</span> Guess what others are drawing</div>
+        <div class="step"><span class="step-num">4</span> Score points for fast guesses!</div>
+      </div>
+    </div>
+
+    <footer class="landing-footer">
+      Cloud Computing Project &bull; AWS Deployed &bull; 2024
+    </footer>
+  </div>
+
+  <script>
+    // NO socket connection on landing page - just validate and redirect
+    let selectedAvatar = 1;
+
+    // Generate avatar grid
+    const avatarEmojis = ['😀','😎','🤠','🥳','😺','🐶','🦊','🐸','🐵','🤖','👻','🎃'];
+    const grid = document.getElementById('avatarGrid');
+    avatarEmojis.forEach((emoji, i) => {
+      const div = document.createElement('div');
+      div.className = 'avatar-option' + (i === 0 ? ' selected' : '');
+      div.textContent = emoji;
+      div.addEventListener('click', () => {
+        document.querySelectorAll('.avatar-option').forEach(a => a.classList.remove('selected'));
+        div.classList.add('selected');
+        selectedAvatar = i + 1;
+      });
+      grid.appendChild(div);
+    });
+
+    function showStatus(message, type) {
+      const el = document.getElementById('status');
+      el.textContent = message;
+      el.className = 'status-msg ' + (type === 'error' ? 'status-error' : 'status-success');
+      el.style.display = 'block';
+    }
+
+    function createRoom() {
+      const name = document.getElementById('playerName').value.trim();
+      if (!name) { showStatus('Please enter your name!', 'error'); return; }
+      if (name.length < 2) { showStatus('Name must be at least 2 characters!', 'error'); return; }
+
+      localStorage.setItem('skribbl_name', name);
+      localStorage.setItem('skribbl_avatar', selectedAvatar);
+
+      // Navigate to game page — room will be created THERE
+      window.location.href = `/game?name=${encodeURIComponent(name)}&avatar=${selectedAvatar}&action=create`;
+    }
+
+    function joinRoom() {
+      const name = document.getElementById('playerName').value.trim();
+      const code = document.getElementById('roomCode').value.trim().toUpperCase();
+      if (!name) { showStatus('Please enter your name!', 'error'); return; }
+      if (name.length < 2) { showStatus('Name must be at least 2 characters!', 'error'); return; }
+      if (!code) { showStatus('Please enter a room code!', 'error'); return; }
+      if (code.length < 4) { showStatus('Invalid room code!', 'error'); return; }
+
+      localStorage.setItem('skribbl_name', name);
+      localStorage.setItem('skribbl_avatar', selectedAvatar);
+
+      // Navigate to game page — room will be joined THERE
+      window.location.href = `/game?name=${encodeURIComponent(name)}&avatar=${selectedAvatar}&action=join&room=${code}`;
+    }
+
+    // Restore saved name
+    const savedName = localStorage.getItem('skribbl_name');
+    if (savedName) document.getElementById('playerName').value = savedName;
+
+    const savedAvatar = localStorage.getItem('skribbl_avatar');
+    if (savedAvatar) {
+      const idx = parseInt(savedAvatar) - 1;
+      document.querySelectorAll('.avatar-option').forEach((a, i) => {
+        a.classList.toggle('selected', i === idx);
+      });
+      selectedAvatar = parseInt(savedAvatar);
+    }
+
+    // Enter key handling
+    document.getElementById('playerName').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') document.getElementById('roomCode').focus();
+    });
+    document.getElementById('roomCode').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') joinRoom();
+    });
+  </script>
+</body>
+</html>
