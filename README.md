@@ -1,4 +1,6 @@
-# skribble-test
+# skribble
+
+Skribbl is a fun multiplayer game. This project was inspired from the original [skribbl.io](https://skribbl.io/) game.
 
 To install dependencies:
 
